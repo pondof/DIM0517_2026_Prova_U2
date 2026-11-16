@@ -1,5 +1,10 @@
 name: Python
 
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
 
 jobs:
   build:
@@ -21,3 +26,40 @@ jobs:
 
       - name: Check
         run: python -m py_compile src/main.py
+
+      - name: Test
+        run: pytest -v
+
+  imagem:
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: python
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - name: Build Docker image
+        run: docker build -t api-python:latest .
+
+      - name: Run Docker container
+        run: docker run -d --name api-python -p 8080:8080 api-python:latest
+
+      - name: Verify API
+        run: |
+          for i in $(seq 1 15); do
+            curl -fs http://localhost:8080/healthy && exit 0
+            sleep 2
+          done
+          exit 1
+
+      - name: Test /hello
+        run: curl -fs http://localhost:8080/hello
+
+      - name: Container logs on failure
+        if: failure()
+        run: docker logs api-python
+
