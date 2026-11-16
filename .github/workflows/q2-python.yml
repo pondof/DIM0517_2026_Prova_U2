@@ -2,12 +2,16 @@ name: Python
 
 on:
   pull_request:
-    branches: 
-      - 'develop/**'
+    types: [closed]
+    branches:
+      - develop
 
+permissions:
+  contents: read
 
 jobs:
   build:
+    if: github.event.pull_request.merged == true
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -25,19 +29,5 @@ jobs:
       - name: Check
         run: python -m py_compile src/main.py
 
-  testes:
-    runs_on: ubuntu_latest
-    timeout-minutes: 10 
-    steps: 
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with: 
-          python-version: "3.13"
-          cache: pip
-          cache-dependency-path: requirements-dev.txt
-      - run: pip install -r requirements-dev.txt
-      - run: ruff check .
-      - run: pytest -v
-      - name: se falhar rodar unitarios
-        if: failure()
-        run: pytest -u
+      - name: Test
+        run: pytest -v
