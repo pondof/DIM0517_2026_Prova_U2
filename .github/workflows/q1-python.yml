@@ -1,5 +1,18 @@
 name: Python
 
+on:
+  push:
+    branches:
+      - 'feature/**'
+    paths:
+      - 'python/src/**'
+      - 'python/Dockerfile*'
+      - 'python/.dockerignore'
+      - 'python/requirements*.txt'
+      - 'python/pytest.ini'
+
+permissions:
+  contents: read
 
 jobs:
   build:
